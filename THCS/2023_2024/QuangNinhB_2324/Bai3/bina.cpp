@@ -1,47 +1,47 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
 using namespace std;
 
 int main() {
-    // Mở file đầu vào và đầu ra
-    ifstream inputFile("bina.inp");
-    ofstream outputFile("bina.out");
-
-    // Đọc n và k
+    // Đọc dữ liệu từ file
+    ifstream infile("bina.inp");
     int n, k;
-    inputFile >> n >> k;
-
-    // Đọc xâu nhị phân s
+    infile >> n >> k; // Đọc n và k
     string s;
-    inputFile >> s;
+    infile >> s; // Đọc chuỗi nhị phân
 
+    // Biến để đếm số thao tác và lưu chuỗi sửa đổi
     int operations = 0;
+    string result = s; // Lưu chuỗi sửa đổi
 
-    // Thực hiện thay đổi xâu để không có hơn k bít giống nhau liên tiếp
-    for (int i = 0; i < n - k; ++i) {
-        // Nếu phát hiện k + 1 bít liên tiếp giống nhau
-        if (s[i] == s[i + 1]) {
-            int count = 1;
-            while (i + count < n && s[i] == s[i + count] && count <= k) {
-                count++;
-            }
-            if (count > k) {
-                // Lật bít tại vị trí k+1 để phá chuỗi liên tiếp
-                s[i + k] = (s[i + k] == '0') ? '1' : '0';
-                operations++;
-                i += k; // Bỏ qua các bít đã kiểm tra
-            }
+    // Duyệt qua chuỗi để kiểm tra và sửa
+    int count = 1; // Đếm số lượng bit giống nhau liên tiếp
+    for (int i = 1; i < n; ++i) {
+        if (result[i] == result[i - 1]) { // Nếu bit giống nhau
+            count++;
+        } else {
+            count = 1; // Đặt lại đếm nếu gặp bit khác
+        }
+
+        // Nếu số lượng bit giống nhau vượt quá k
+        if (count > k) {
+            // Lật bit hiện tại
+            operations++;
+            result[i] = (result[i] == '1') ? '0' : '1'; // Đảo bit
+            count = 1; // Reset đếm về 1 vì vừa lật bit
         }
     }
 
-    // Ghi kết quả ra file output
-    outputFile << operations << endl;
-    outputFile << s << endl;
+    // Ghi kết quả ra file
+    ofstream outfile("bina.out");
+    outfile << operations << endl; // Số thao tác tối thiểu
+    outfile << result; // Chuỗi đã sửa đổi
 
     // Đóng file
-    inputFile.close();
-    outputFile.close();
+    infile.close();
+    outfile.close();
 
     return 0;
 }

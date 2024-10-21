@@ -1,52 +1,46 @@
 def main():
-    # Đọc dữ liệu từ file CAKE.INP
-    with open("CAKE.INP", "r") as infile:
+    # Đọc dữ liệu từ file
+    with open('CAKE.INP', 'r') as infile:
         N = int(infile.readline().strip())
         cake = infile.readline().strip()
 
-    # Biến lưu tổng số quả dâu và sim
-    totalD = cake.count('D')
-    totalS = cake.count('S')
+    # Đếm tổng số quả dâu và quả sim
+    total_D = cake.count('D')
+    total_S = cake.count('S')
 
-    # Nếu tổng số quả dâu hoặc sim là lẻ thì không thể chia đều
-    if totalD % 2 != 0 or totalS % 2 != 0:
-        with open("CAKE.OUT", "w") as outfile:
+    # Nếu số lượng quả dâu hoặc sim là lẻ, không thể chia đều
+    if total_D % 2 != 0 or total_S % 2 != 0:
+        with open('CAKE.OUT', 'w') as outfile:
             outfile.write("-1\n")
         return
 
-    # Duyệt qua từng vị trí để tìm cách chia
+    # Tổng số quả cần có ở mỗi phần
+    half_D = total_D // 2
+    half_S = total_S // 2
+
+    # Duyệt qua các vị trí để tìm cách cắt
     for start in range(N):
-        countD = 0
-        countS = 0
-
-        # Tính số lượng quả trong đoạn từ start đến start + N/2
-        for length in range(N):
-            if cake[(start + length) % N] == 'D':
-                countD += 1
+        count_D = 0
+        count_S = 0
+        for end in range(start, start + N):  # Duyệt vòng tròn
+            if cake[end % N] == 'D':
+                count_D += 1
             else:
-                countS += 1
+                count_S += 1
 
-            # Kiểm tra nếu số lượng quả đến hiện tại đã đủ chia đều
-            if length + 1 >= N // 2:
-                # Kiểm tra điều kiện cắt bánh
-                if countD == totalD // 2 and countS == totalS // 2:
-                    end = (start + length) % N
+            # Kiểm tra điều kiện
+            if count_D == half_D and count_S == half_S:
+                a = (start + 1)  # Thêm 1 vì yêu cầu số nguyên dương
+                b = (end % N + 1)  # Thêm 1 vì yêu cầu số nguyên dương
+                if a > b:
+                    a, b = b, a  # Đảm bảo a < b
+                with open('CAKE.OUT', 'w') as outfile:
+                    outfile.write(f"{a} {b}\n")
+                return
 
-                    # Định dạng kết quả a, b (a < b)
-                    a = start + 1
-                    b = end + 1
-
-                    # Điều chỉnh b nếu b <= a
-                    if b <= a:
-                        b += N
-
-                    with open("CAKE.OUT", "w") as outfile:
-                        outfile.write(f"{a} {b}\n")  # Ghi kết quả
-                    return  # Kết thúc chương trình
-
-    # Nếu không tìm thấy cách chia, ghi -1 vào file
-    with open("CAKE.OUT", "w") as outfile:
+    # Nếu không tìm thấy cách chia
+    with open('CAKE.OUT', 'w') as outfile:
         outfile.write("-1\n")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

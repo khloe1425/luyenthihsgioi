@@ -1,39 +1,46 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
+#include <fstream>
 #include <algorithm>
+using namespace std;
 
 int main() {
-    std::ifstream infile("Moon.INP");
-    std::ofstream outfile("Moon.OUT");
+    ifstream infile("Moon.INP");
+    ofstream outfile("Moon.OUT");
 
-    int n, a; // số học sinh và số bánh trung thu
-    infile >> n >> a;
+    // Đọc số lượng học sinh
+    int n;
+    infile >> n;
 
-    // Tạo vector để lưu số bánh trung thu mà mỗi học sinh nhận
-    std::vector<int> cakes(n, 0);
+    vector<int> cakes(n);
+    for (int i = 0; i < n; i++) {
+        infile >> cakes[i];
+    }
 
-    // Gán số bánh cho An (vị trí 0)
-    cakes[0] = a;
+    // Mảng để lưu số bánh tối đa mà mỗi bạn nhận được
+    vector<int> result(n, 1); // Bắt đầu với mỗi bạn có 1 bánh
 
-    // Phân phối bánh cho học sinh bên trái
-    for (int i = 1; i < n; ++i) {
-        if (cakes[i - 1] > 0) {
-            cakes[i] = cakes[i - 1] - 1; // Mỗi bạn bên trái nhận ít hơn một chiếc
+    // Phát bánh từ trái sang phải
+    for (int i = 1; i < n; i++) {
+        if (cakes[i] > cakes[i - 1]) {
+            result[i] = result[i - 1] + 1; // Nếu bạn bên trái có ít hơn
         }
     }
 
-    // Phân phối bánh cho học sinh bên phải
-    for (int i = n - 2; i >= 0; --i) {
-        if (cakes[i + 1] > 0) {
-            cakes[i] = std::max(cakes[i], cakes[i + 1] - 1); // Đảm bảo không ai bên trái ít hơn
+    // Phát bánh từ phải sang trái
+    for (int i = n - 2; i >= 0; i--) {
+        if (cakes[i] > cakes[i + 1]) {
+            result[i] = max(result[i], result[i + 1] + 1); // Đảm bảo max
         }
     }
 
-    // Tính số bánh tối đa mà An có thể nhận (tức là số bánh ở vị trí 0)
-    outfile << cakes[0] << std::endl;
+    // Kết quả là số bánh mà An nhận được (tại vị trí đầu tiên)
+    int an_cakes = result[0];
+
+    outfile << an_cakes << endl;
 
     infile.close();
     outfile.close();
+
     return 0;
 }

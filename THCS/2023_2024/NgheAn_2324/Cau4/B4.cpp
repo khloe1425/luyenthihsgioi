@@ -1,8 +1,7 @@
 #include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
-
+#include <string>
+#include <fstream>
 using namespace std;
 
 int main() {
@@ -10,73 +9,72 @@ int main() {
     ofstream outfile("B4.OUT");
 
     int k;
-    infile >> k;  // Số hàng
-    string row1, row2;
-    infile >> row1;  // Ống tre hàng 1
+    infile >> k;
 
-    // Ống tre hàng 2 nếu k = 2
+    string firstRow, secondRow;
+    infile >> firstRow;
+
     if (k == 2) {
-        infile >> row2;
+        infile >> secondRow;
     }
 
-    // Tạo danh sách ống tre
-    vector<char> pipes;  // Danh sách ống tre
+    int totalTubes = firstRow.length() + (k == 2 ? secondRow.length() : 0);
+    int score = 1000000; // Tổng số thẻ bài
 
-    // Thêm ống từ hàng đầu tiên
-    for (char c : row1) {
-        pipes.push_back(c);
-    }
+    // Biến đánh dấu các ống đã được sử dụng
+    vector<bool> used(totalTubes, false);
+    int usedCount = 0;
 
-    // Thêm ống từ hàng thứ hai nếu có
-    if (k == 2) {
-        for (char c : row2) {
-            pipes.push_back(c);
+    // Duyệt qua các thẻ bài từ 1 đến 1.000.000
+    for (int i = 1; i <= 1000000; i++) {
+        char color = ' ';
+
+        // Chọn màu dựa vào số chẵn hoặc lẻ
+        if (i % 2 == 0) { // Số chẵn -> ống xanh
+            for (int j = 0; j < firstRow.size(); j++) {
+                if (firstRow[j] == 'B' && !used[j]) {
+                    used[j] = true;
+                    usedCount++;
+                    break;
+                }
+            }
+            // Nếu có hàng thứ hai
+            if (k == 2) {
+                for (int j = 0; j < secondRow.size(); j++) {
+                    if (secondRow[j] == 'B' && !used[j + firstRow.size()]) {
+                        used[j + firstRow.size()] = true;
+                        usedCount++;
+                        break;
+                    }
+                }
+            }
+        } else { // Số lẻ -> ống đỏ
+            for (int j = 0; j < firstRow.size(); j++) {
+                if (firstRow[j] == 'R' && !used[j]) {
+                    used[j] = true;
+                    usedCount++;
+                    break;
+                }
+            }
+            // Nếu có hàng thứ hai
+            if (k == 2) {
+                for (int j = 0; j < secondRow.size(); j++) {
+                    if (secondRow[j] == 'R' && !used[j + firstRow.size()]) {
+                        used[j + firstRow.size()] = true;
+                        usedCount++;
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    // Biến đếm số thẻ bài đã bỏ
-    int cards_used = 0;
-
-    // Chỉ số để theo dõi các ống đã sử dụng
-    int next_pipe_index = 0;  // Chỉ số ống tiếp theo có thể sử dụng
-
-    // Duyệt qua thẻ bài từ 1 đến 1000000
-    for (int card = 1; card <= 1000000; ++card) {
-        // Nếu đã dùng hết các ống tre thì bỏ qua
-        if (next_pipe_index >= pipes.size()) {
-            break;
-        }
-
-        if (card % 2 == 0) {  // Thẻ chẵn
-            // Tìm ống xanh tiếp theo
-            while (next_pipe_index < pipes.size() && pipes[next_pipe_index] != 'B') {
-                next_pipe_index++;
-            }
-            // Nếu tìm thấy ống xanh, bỏ thẻ vào
-            if (next_pipe_index < pipes.size()) {
-                cards_used++;
-                next_pipe_index++;  // Chuyển sang ống tiếp theo
-            }
-        } else {  // Thẻ lẻ
-            // Tìm ống đỏ tiếp theo
-            while (next_pipe_index < pipes.size() && pipes[next_pipe_index] != 'R') {
-                next_pipe_index++;
-            }
-            // Nếu tìm thấy ống đỏ, bỏ thẻ vào
-            if (next_pipe_index < pipes.size()) {
-                cards_used++;
-                next_pipe_index++;  // Chuyển sang ống tiếp theo
-            }
-        }
-    }
-
-    // Tính điểm số cao nhất An có thể đạt được
-    long long score = 1000000 - cards_used;
-
-    // Ghi kết quả ra tệp
+    // Tính điểm cuối cùng
+    score -= usedCount;
     outfile << score << endl;
 
     infile.close();
     outfile.close();
+    
     return 0;
 }

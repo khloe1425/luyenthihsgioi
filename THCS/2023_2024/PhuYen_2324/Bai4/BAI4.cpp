@@ -1,58 +1,82 @@
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-
+#include <fstream> // Thư viện cho việc đọc/ghi file
+#include <cstring>
+#define SIZE 120 // Điều chỉnh SIZE lớn hơn cho số lớn
 using namespace std;
 
-// Hàm nhân hai số lớn
-string multiply_large_numbers(const string &num1, const string &num2) {
-    if (num1 == "0" || num2 == "0") return "0"; // Nếu một trong hai số là 0, trả về 0
+// Khai báo hàm trước khi sử dụng
+void tinhTich(char A[], char B[], char C[]);
 
-    int len1 = num1.size();
-    int len2 = num2.size();
-    vector<int> result(len1 + len2, 0); // Vector để lưu trữ kết quả
-
-    // Nhân từng chữ số
-    for (int i = len1 - 1; i >= 0; --i) {
-        for (int j = len2 - 1; j >= 0; --j) {
-            int n1 = num1[i] - '0'; // Chuyển ký tự thành số
-            int n2 = num2[j] - '0'; // Chuyển ký tự thành số
-            int sum = n1 * n2 + result[i + j + 1]; // Tính tích và cộng vào vị trí tương ứng
-
-            result[i + j + 1] = sum % 10; // Cập nhật vị trí phần đơn vị
-            result[i + j] += sum / 10; // Cập nhật phần chục
-        }
+// Hàm để đảo ngược chuỗi
+void reverse(char str[]) {
+    int n = strlen(str);
+    for (int i = 0; i < n / 2; i++) {
+        swap(str[i], str[n - i - 1]);
     }
-
-    // Chuyển vector kết quả thành chuỗi
-    string result_str;
-    for (int num : result) {
-        if (!(result_str.empty() && num == 0)) { // Bỏ qua các số 0 ở đầu
-            result_str.push_back(num + '0'); // Chuyển số về ký tự
-        }
-    }
-
-    return result_str.empty() ? "0" : result_str; // Nếu không có kết quả, trả về "0"
 }
 
 int main() {
-    ifstream infile("BAI4.INP"); // Mở file để đọc
-    ofstream outfile("BAI4.OUT"); // Mở file để ghi
+    char A[SIZE], B[SIZE], C[SIZE * 2] = {0}; // Khởi tạo C
 
-    if (!infile.is_open() || !outfile.is_open()) {
-        cerr << "Error opening file!" << endl; // Kiểm tra lỗi mở file
-        return 1;
+    // Mở file để đọc dữ liệu
+    ifstream inputFile("BAI4.INP");
+    if (!inputFile) {
+        cerr << "Không thể mở file BAI4.INP" << endl;
+        return 1; // Thoát nếu không mở được file
     }
 
-    string S1, S2;
-    getline(infile, S1); // Đọc số S1
-    getline(infile, S2); // Đọc số S2
+    // Đọc hai số từ file
+    inputFile.getline(A, SIZE);
+    inputFile.getline(B, SIZE);
+    inputFile.close(); // Đóng file sau khi đọc
 
-    string product = multiply_large_numbers(S1, S2); // Tính tích
-    outfile << product << endl; // Ghi kết quả vào file
+    // Tính tích và lưu kết quả
+    tinhTich(A, B, C);
 
-    infile.close(); // Đóng file đọc
-    outfile.close(); // Đóng file ghi
-    return 0;
+    // Mở file để ghi kết quả
+    ofstream outputFile("BAI4.OUT");
+    if (!outputFile) {
+        cerr << "Không thể mở file BAI4.OUT" << endl;
+        return 1; // Thoát nếu không mở được file
+    }
+
+    // Ghi kết quả vào file
+    outputFile << C << endl;
+    outputFile.close(); // Đóng file sau khi ghi
+
+    return 0; // Kết thúc chương trình thành công
+}
+
+void tinhTich(char A[], char B[], char C[]) {
+    reverse(A);
+    reverse(B);
+    int lenA = strlen(A);
+    int lenB = strlen(B);
+
+    // Khởi tạo mảng C
+    for (int i = 0; i < lenA + lenB; i++) {
+        C[i] = '0'; // Khởi tạo tất cả các vị trí bằng '0'
+    }
+    
+    for (int iB = 0; iB < lenB; iB++) {
+        int nho = 0; // Biến nhớ
+        for (int iA = 0; iA < lenA; iA++) {
+            // Tính tích
+            int x = (B[iB] - '0') * (A[iA] - '0') + nho + (C[iA + iB] - '0');
+            C[iA + iB] = (x % 10) + '0'; // Đặt giá trị tại vị trí tương ứng
+            nho = x / 10; // Cập nhật giá trị nhớ
+        }
+        // Nếu còn số nhớ thì thêm vào
+        if (nho > 0) {
+            C[lenA + iB] += nho; // Cộng vào vị trí thích hợp
+        }
+    }
+
+    // Xử lý vị trí null
+    int result_len = lenA + lenB;
+    while (result_len > 0 && C[result_len - 1] == '0') {
+        result_len--; // Bỏ qua các số 0 ở đầu
+    }
+    C[result_len] = '\0'; // Đặt ký tự null
+    reverse(C); // Đảo ngược lại kết quả
 }

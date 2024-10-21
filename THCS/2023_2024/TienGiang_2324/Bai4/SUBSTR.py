@@ -1,31 +1,35 @@
-def find_shortest_prefix(s):
+def is_repeated_substring(s):
     n = len(s)
-    # Duyệt qua các độ dài của đoạn đầu
-    for length in range(1, n // 2 + 1):
-        # Kiểm tra nếu n chia hết cho length
-        if n % length == 0:
-            prefix = s[:length]
-            # Tạo xâu từ đoạn đầu
-            repeated = prefix * (n // length)
-            # Kiểm tra xem xâu lặp lại có giống với xâu ban đầu không
-            if repeated == s:
-                return prefix  # Trả về đoạn đầu ngắn nhất
-    return ""
+    for i in range(1, n // 2 + 1):
+        if n % i == 0:  # Nếu độ dài của xâu chia hết cho i
+            if s[:i] * (n // i) == s:  # Kiểm tra xem xâu có phải là lặp lại không
+                return s[:i]  # Trả về đoạn đầu ngắn nhất
+    return None  # Nếu không tìm thấy đoạn đầu ngắn nhất
 
 def main():
-    with open("SUBSTR.INP", "r") as infile:
-        n = int(infile.readline().strip())
-        result = ""
+    try:
+        # Đọc file SUBSTR.INP
+        with open("SUBSTR.INP", "r") as infile:
+            n = int(infile.readline().strip())  # Đọc số lượng xâu
+            substrings = [infile.readline().strip() for _ in range(n)]  # Đọc các xâu
+            
+    except FileNotFoundError:
+        print("Không thể mở file SUBSTR.INP")
+        return
 
-        for _ in range(n):
-            s = infile.readline().strip()  # Đọc từng xâu
-            prefix = find_shortest_prefix(s)
-            if prefix:  # Nếu xâu lập
-                result += prefix  # Ghép các đoạn đầu ngắn nhất
+    result = ""
 
-    # Ghi kết quả ra file
-    with open("SUBSTR.OUT", "w") as outfile:
-        outfile.write(result)
+    for s in substrings:
+        substring = is_repeated_substring(s)  # Kiểm tra xâu lặp và lấy đoạn đầu
+        if substring:
+            result += substring  # Ghép đoạn đầu vào kết quả
+
+    # Ghi kết quả vào file SUBSTR.OUT
+    try:
+        with open("SUBSTR.OUT", "w") as outfile:
+            outfile.write(result)  # Ghi kết quả vào file
+    except:
+        print("Không thể mở file SUBSTR.OUT")
 
 if __name__ == "__main__":
     main()
