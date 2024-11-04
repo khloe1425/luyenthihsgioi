@@ -1,66 +1,80 @@
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <vector>
 
-using namespace std;
-
-// Hàm kiểm tra năm nhuận
-bool isLeapYear(int year) {
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+// Function to check if a year is a leap year
+bool is_leap_year(int year) {
+    return (year % 4 == 0);
 }
 
-// Hàm kiểm tra ngày hợp lệ
-bool isValidDate(int day, int month, int year) {
-    if (month < 1 || month > 12 || day < 1) {
-        return false;
-    }
+// Function to check if the day is valid for the given month and year
+bool is_valid_date(int day, int month, int year) {
+    if (month < 1 || month > 12 || day < 1) return false;
 
-    // Số ngày tối đa trong từng tháng
-    int daysInMonth;
+    // Days in each month
     if (month == 2) {
-        daysInMonth = isLeapYear(year) ? 29 : 28; // Tháng 2
+        return day <= (is_leap_year(year) ? 29 : 28);
     } else if (month == 4 || month == 6 || month == 9 || month == 11) {
-        daysInMonth = 30; // Tháng 30 ngày
+        return day <= 30;
     } else {
-        daysInMonth = 31; // Tháng 31 ngày
+        return day <= 31;
     }
-
-    return day <= daysInMonth;
 }
 
-int main() {
-    string s;
-    cin >> s;
+// Function to parse and validate date from string S
+std::string parse_date(const std::string &S) {
+    int year = std::stoi(S.substr(S.size() - 2, 2)); // Last two characters as year
 
-    int length = s.length();
-    if (length < 4 || length > 5) {
-        cout << "KHONG TAO DUOC" << endl;
-        return 0;
+    // Possible day-month combinations
+    std::vector<std::pair<int, int>> possible_dates;
+
+    if (S.size() == 4) {
+        // Case for 4 characters (e.g., 1316, where day=1, month=3, year=16)
+        int day = S[0] - '0';
+        int month = std::stoi(S.substr(1, 1));
+        possible_dates.emplace_back(day, month);
+    } else if (S.size() == 5) {
+        // Case for 5 characters (e.g., 11216, can be day=11, month=2 or day=1, month=12)
+        int day1 = std::stoi(S.substr(0, 1));
+        int month1 = std::stoi(S.substr(1, 2));
+
+        int day2 = std::stoi(S.substr(0, 2));
+        int month2 = std::stoi(S.substr(2, 1));
+
+        possible_dates.emplace_back(day1, month1);
+        possible_dates.emplace_back(day2, month2);
     }
 
-    int year = 0, day = 0, month = 0;
+    // Check each possible day-month combination for validity
+    for (const auto &date : possible_dates) {
+        int day = date.first;
+        int month = date.second;
 
-    // Tách năm
-    year = stoi(s.substr(length - 2)) + 2000; // Hai ký tự cuối là năm
-
-    if (length == 4) {
-        day = stoi(s.substr(0, 1)); // 1 ký tự đầu là ngày
-        month = stoi(s.substr(1, 2)); // 2 ký tự tiếp theo là tháng
-    } else if (length == 5) {
-        if (isdigit(s[1])) {
-            day = stoi(s.substr(0, 2)); // 2 ký tự đầu là ngày
-            month = stoi(s.substr(2, 3)); // 3 ký tự còn lại là tháng
-        } else {
-            day = stoi(s.substr(0, 1)); // 1 ký tự đầu là ngày
-            month = stoi(s.substr(1, 4)); // 4 ký tự còn lại là tháng
+        if (is_valid_date(day, month, year)) {
+            return std::to_string(day) + "/" + std::to_string(month) + "/" + std::to_string(year);
         }
     }
 
-    // Kiểm tra ngày hợp lệ
-    if (isValidDate(day, month, year)) {
-        cout << day << "/" << month << "/" << (year % 100) << endl; // In ra ngày/tháng/năm
-    } else {
-        cout << "KHONG TAO DUOC" << endl;
+    return "KHONG TAO DUOC";
+}
+
+int main() {
+    std::ifstream infile("BAI01.INP");
+    std::ofstream outfile("BAI01.OUT");
+
+    if (!infile || !outfile) {
+        std::cerr << "Lỗi mở file đầu vào hoặc đầu ra!" << std::endl;
+        return 1;
     }
+
+    std::string S;
+    while (infile >> S) {
+        outfile << parse_date(S) << std::endl;
+    }
+
+    infile.close();
+    outfile.close();
 
     return 0;
 }
