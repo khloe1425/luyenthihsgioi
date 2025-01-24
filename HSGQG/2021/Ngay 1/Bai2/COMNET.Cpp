@@ -1,50 +1,36 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <set>
-#include <algorithm>
+#include <bitset>
 
 using namespace std;
 
-// Hàm kiểm tra xem một tổ hợp có bao nhiêu kênh liên thông
-int countEdges(const vector<int>& nodes, const vector<pair<int, int>>& edges) {
-    set<int> selected(nodes.begin(), nodes.end());
+// Function to count the number of edges within the selected subset
+int countEdges(int subset, const vector<pair<int, int>>& edges) {
     int count = 0;
-
     for (const auto& edge : edges) {
-        if (selected.count(edge.first) && selected.count(edge.second)) {
+        if ((subset & (1 << (edge.first - 1))) && (subset & (1 << (edge.second - 1)))) {
             count++;
         }
     }
-
     return count;
 }
 
-// Hàm sinh tất cả các tổ hợp k phần tử từ n phần tử
-void generateCombinations(int n, int k, vector<vector<int>>& combinations, vector<int>& current, int start) {
-    if (current.size() == k) {
-        combinations.push_back(current);
-        return;
-    }
-
-    for (int i = start; i <= n; i++) {
-        current.push_back(i);
-        generateCombinations(n, k, combinations, current, i + 1);
-        current.pop_back();
+// Function to generate subsets with exactly k bits set
+void generateSubsets(int n, int k, vector<int>& subsets) {
+    int mask = (1 << k) - 1; // Initial mask with k bits set
+    while (mask < (1 << n)) {
+        subsets.push_back(mask);
+        // Gosper's hack to generate next subset with k bits
+        int c = mask & -mask;
+        int r = mask + c;
+        mask = (((r ^ mask) >> 2) / c) | r;
     }
 }
 
 int main() {
     ifstream fin("COMNET.INP");
-    if (!fin) {
-        cerr << "Không thể mở file COMNET.INP!" << endl;
-        return 1;
-    }
     ofstream fout("COMNET.OUT");
-    if (!fout) {
-        cerr << "Không thể mở file COMNET.OUT!" << endl;
-        return 1;
-    }
 
     int n, k, a, b;
     fin >> n >> k >> a >> b;
@@ -56,14 +42,12 @@ int main() {
         edges.emplace_back(u, v);
     }
 
-    vector<vector<int>> combinations;
-    vector<int> current;
-    generateCombinations(n, k, combinations, current, 1);
+    vector<int> subsets;
+    generateSubsets(n, k, subsets);
 
     int validCount = 0;
-
-    for (const auto& combo : combinations) {
-        int edgeCount = countEdges(combo, edges);
+    for (int subset : subsets) {
+        int edgeCount = countEdges(subset, edges);
         if (edgeCount >= a && edgeCount <= b) {
             validCount++;
         }

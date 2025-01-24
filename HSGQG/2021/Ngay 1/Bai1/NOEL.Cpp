@@ -6,7 +6,7 @@
 using namespace std;
 
 int main() {
-    // Đọc dữ liệu từ file input
+    // Open input and output files
     ifstream fin("NOEL.INP");
     ofstream fout("NOEL.OUT");
 
@@ -18,36 +18,29 @@ int main() {
         fin >> gifts[i];
     }
 
-    // Sắp xếp mảng quà tăng dần
+    // Sort the array of gifts
     sort(gifts.begin(), gifts.end());
-    cout << "Mảng quà sau khi sắp xếp: ";
-    for (int x : gifts) cout << x << " ";
-    cout << endl;
 
-    int i = 0, j = 2 * n - 1; // i: chỉ số đầu, j: chỉ số cuối
+    int i = 0, j = 1; // Two pointers
     int max_kids = 0;
 
-    // Duyệt qua các cặp quà
-    while (i < j) {
-        cout << "Xét cặp: (" << gifts[i] << ", " << gifts[j] << ")" << endl;
+    // Process pairs
+    while (j < 2 * n) {
         if (gifts[j] - gifts[i] <= d) {
-            // Nếu chênh lệch <= d, tặng quà cho 1 bạn nhỏ
+            // Pair is valid, move to the next pair
             max_kids++;
-            cout << "Tặng quà cho 1 bạn! Số bạn hiện tại: " << max_kids << endl;
             i++;
-            j--;
+            j++;
         } else {
-            // Nếu không, bỏ món quà lớn hơn (giảm j)
-            cout << "Chênh lệch lớn hơn " << d << ". Bỏ quà lớn hơn.\n";
-            j--;
+            // Pair is not valid, try the next gift for i
+            j++;
         }
     }
 
-    // Ghi kết quả ra file output
+    // Output the result
     fout << max_kids << endl;
-    cout << "Số lượng bạn nhỏ tối đa: " << max_kids << endl;
 
-    // Đóng file
+    // Close the files
     fin.close();
     fout.close();
 

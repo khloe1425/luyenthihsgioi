@@ -5,32 +5,63 @@
 
 using namespace std;
 
+int n, m, k, C;
+vector<int> sequence;
+int validCount = 0; // Total valid sequences
+vector<int> targetSequence;
+
+// Function to check if a transition between two colors is valid
+bool isValidTransition(int prev, int current) {
+    if (prev == 1) return (current == 1 || current == 2);
+    if (prev == m) return (current == m || current == m - 1);
+    return (current == prev || current == prev - 1 || current == prev + 1);
+}
+
+// Backtracking to generate all valid sequences
+void generateSequences(int index, int countC) {
+    if (index == 2 * n) {
+        // Check if the sequence is circular
+        if (isValidTransition(sequence.back(), sequence[0])) {
+            validCount++; // Count this valid sequence
+            if (countC == k) {
+                targetSequence = sequence; // Save the sequence containing exactly k color C
+            }
+        }
+        return;
+    }
+
+    for (int color = 1; color <= m; color++) {
+        if (index == 0 || isValidTransition(sequence[index - 1], color)) {
+            sequence.push_back(color);
+            generateSequences(index + 1, countC + (color == C ? 1 : 0));
+            sequence.pop_back();
+        }
+    }
+}
+
 int main() {
     ifstream fin("FIREWK.INP");
     ofstream fout("FIREWK.OUT");
 
-    int n, m, k, C;
+    // Input reading
     fin >> n >> m >> k >> C;
 
-    vector<int> codes(2 * n);
-    for (int i = 0; i < 2 * n; ++i) {
-        fin >> codes[i];
-    }
+    // Initialize sequence and generate valid sequences
+    sequence.reserve(2 * n);
+    generateSequences(0, 0);
 
-    vector<int> matching_indices;
+    // Output the total number of valid sequences
+    fout << validCount << endl;
 
-    for (int i = 0; i < 2 * n; ++i) {
-        if (codes[i] == C) {
-            matching_indices.push_back(i + 1); // Thêm vị trí (tính từ 1)
+    // Output the k-th sequence containing color C, if it exists
+    if (!targetSequence.empty()) {
+        for (int color : targetSequence) {
+            fout << color << " ";
         }
+        fout << endl;
+    } else {
+        fout << -1 << endl; // No valid sequence found with k occurrences of C
     }
-
-    // Sắp xếp theo thứ tự từ điển (danh sách các chỉ số đã tự động có thứ tự)
-    fout << matching_indices.size() << endl; // Số lượng mã hoa thỏa mãn
-    for (int x : matching_indices) {
-        fout << x << " ";
-    }
-    fout << endl;
 
     fin.close();
     fout.close();
