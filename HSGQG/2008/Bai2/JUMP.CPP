@@ -1,67 +1,58 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
+#include <fstream>
 #include <unordered_map>
 #include <algorithm>
 
 using namespace std;
 
-vector<vector<int>> graph;
-vector<int> memo;
+vector<int> numbers;
+unordered_map<int, vector<int>> graph;
+vector<int> dp;
 
-// DFS with memoization to find the longest path
+// Hàm DFS có nhớ để tìm đường đi dài nhất
 int dfs(int node) {
-    if (memo[node] != -1) {
-        return memo[node];
-    }
-
-    int max_length = 1; // At least the current node itself
-    for (int neighbor : graph[node]) {
+    if (dp[node] != -1) return dp[node];
+    int max_length = 1;
+    for (int neighbor : graph[numbers[node]]) {
         max_length = max(max_length, 1 + dfs(neighbor));
     }
-
-    memo[node] = max_length;
-    return max_length;
+    return dp[node] = max_length;
 }
 
 int main() {
-    ifstream input("JUMP.INP");
-    ofstream output("JUMP.OUT");
-
+    ifstream fin("JUMP.INP");
+    ofstream fout("JUMP.OUT");
+    
     int n;
-    input >> n;
-
-    vector<int> a(n);
+    fin >> n;
+    numbers.resize(n);
     for (int i = 0; i < n; i++) {
-        input >> a[i];
+        fin >> numbers[i];
     }
-
-    // Build the graph
-    graph.resize(n);
+    fin.close();
+    
+    // Tạo đồ thị có hướng theo quy tắc a_k = a_i + a_j
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            if (i == j) continue; // i and j must be distinct
-            for (int k = 0; k < n; k++) {
-                if (k != i && k != j && a[i] + a[j] == a[k]) {
-                    graph[i].push_back(j); // Add directed edge from i to j
-                    break; // Stop checking other values of k for this pair (i, j)
+            if (i != j) {
+                int sum = numbers[i] + numbers[j];
+                if (find(numbers.begin(), numbers.end(), sum) != numbers.end()) {
+                    graph[numbers[i]].push_back(find(numbers.begin(), numbers.end(), sum) - numbers.begin());
                 }
             }
         }
     }
-
-    // Perform DFS with memoization
-    memo.assign(n, -1);
-    int max_path = 0;
+    
+    dp.assign(n, -1);
+    int max_jumps = 0;
+    
+    // Tìm đường đi dài nhất từ tất cả các node
     for (int i = 0; i < n; i++) {
-        max_path = max(max_path, dfs(i));
+        max_jumps = max(max_jumps, dfs(i));
     }
-
-    // Output the result
-    output << max_path << endl;
-
-    input.close();
-    output.close();
-
+    
+    fout << max_jumps << endl;
+    fout.close();
     return 0;
 }

@@ -1,36 +1,36 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <cmath>
 
 using namespace std;
 
-// Function to calculate the position of a cell (row, col) after stacking
-int calculate_position(int k, int row, int col) {
-    int position = 0;
-    for (int i = 0; i < k; i++) {
-        int bit_row = (row >> i) & 1; // Extract the i-th bit of the row index
-        int bit_col = (col >> i) & 1; // Extract the i-th bit of the column index
-        position |= (bit_row << (2 * i + 1)) | (bit_col << (2 * i)); // Interleave bits
+// Hàm tính chỉ số của một ô sau khi cắt bánh
+int getFinalIndex(int k, int row, int col) {
+    int index = 0;
+    for (int i = k - 1; i >= 0; i--) {
+        int mask = 1 << i;
+        index *= 2;
+        if (row & mask) index++;
+        index *= 2;
+        if (col & mask) index++;
     }
-    return position;
+    return index + 1; // Thứ tự tính từ 1
 }
 
 int main() {
-    ifstream input("GIFTS.INP");
-    ofstream output("GIFTS.OUT");
-
+    ifstream fin("GIFTS.INP");
+    ofstream fout("GIFTS.OUT");
+    
     int k, p, q, u, v;
-    input >> k >> p >> q >> u >> v;
-
-    // Calculate positions for (p, q) and (u, v)
-    int position_pq = calculate_position(k, p, q);
-    int position_uv = calculate_position(k, u, v);
-
-    // Output the results, adding 1 to convert to 1-based indexing
-    output << position_pq + 1 << " " << position_uv + 1 << endl;
-
-    input.close();
-    output.close();
-
+    fin >> k >> p >> q >> u >> v;
+    fin.close();
+    
+    int index1 = getFinalIndex(k, p, q);
+    int index2 = getFinalIndex(k, u, v);
+    
+    fout << index1 << " " << index2 << endl;
+    fout.close();
+    
     return 0;
 }

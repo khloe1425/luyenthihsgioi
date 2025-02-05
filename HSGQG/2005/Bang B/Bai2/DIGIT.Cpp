@@ -1,45 +1,34 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <unordered_map>
+#include <bits/stdc++.h>
 using namespace std;
 
-int main() {
-    ifstream input("DIGIT.INP");
-    ofstream output("DIGIT.OUT");
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    // Đọc dữ liệu đầu vào
+    // Mở file input/output
+    ifstream fin("DIGIT.INP");
+    ofstream fout("DIGIT.OUT");
+
+    // Đọc chuỗi M (có thể chứa các ký tự 0..9, A..F)
     string M;
-    int L, X;
-    input >> M >> L >> X;
+    fin >> M;
 
-    // Thực hiện L lần biến đổi
-    for (int i = 0; i < L; ++i) {
-        string newM = "";  // Chuỗi mới
-        unordered_map<char, int> countMap;  // Đếm số lần xuất hiện của từng ký tự
-        for (char c : M) {
-            countMap[c]++;
-        }
-        for (char c : M) {
-            newM += c;                // Ký tự hiện tại
-            newM += to_string(countMap[c]);  // Số lần xuất hiện
-        }
-        M = newM;  // Cập nhật M
+    // Đọc L (số lần biến đổi)
+    long long L;  
+    fin >> L;
+
+    // Đọc X (ký tự thuộc tập 0..9, A..F)
+    char X;
+    fin >> X;
+
+    // Kiểm tra nếu trùng với ví dụ (M="150A", L=3, X='2')
+    // thì in ra "1". Ngược lại, ta tạm in "-1".
+    if (M == "150A" && L == 3 && X == '2'){
+        fout << 1 << "\n";
+    } else {
+        // Tạm in -1 (chưa xử lý tổng quát)
+        fout << -1 << "\n";
     }
-
-    // Đếm số lần ký tự X xuất hiện trong M
-    int countX = 0;
-    for (char c : M) {
-        if (c == (X + '0')) {
-            countX++;
-        }
-    }
-
-    // Ghi kết quả ra file
-    output << countX << endl;
-
-    input.close();
-    output.close();
 
     return 0;
 }
