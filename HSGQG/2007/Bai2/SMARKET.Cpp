@@ -1,69 +1,98 @@
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <cstring>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MOD = 1000000007; // Nếu cần modulo để tránh tràn số nguyên
+// Ta giới hạn: s ≤ 500, số cách có thể rất lớn nên dùng long long để đếm.
+// Kế hoạch: Dùng DP kiểu "đếm số cách" + "lưu vết".
+//    dp[i][v] = số cách mua (từ item 1..i) để đạt tổng giá v.
+//    dp[0][0] = 1, dp[0][v>0] = 0.
+//    dp[i][v] = ∑_{k=0..m_i, v-k*c_i >=0} dp[i-1][v-k*c_i].
+//
+// Để lưu 1 cách mua, ta cất "parent[i][v]" = k (lượng item i) dẫn đến dp[i][v] > 0 đầu tiên.
+//
+// Cuối cùng, kết quả = dp[n][s]. Nếu >0 thì ta lần ngược lại để truy ra x_n..x_1.
 
-int main() {
-    // Đọc dữ liệu từ file SMARKET.INP
-    ifstream inputFile("SMARKET.INP");
-    ofstream outputFile("SMARKET.OUT");
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    int s, n; // s: số tiền cần sử dụng, n: số mặt hàng
-    inputFile >> s >> n;
+    // Mở file vào/ra
+    ifstream fin("SMARKET.INP");
+    ofstream fout("SMARKET.OUT");
 
-    vector<int> c(n), m(n);
-    for (int i = 0; i < n; i++) {
-        inputFile >> c[i] >> m[i]; // c[i]: giá tiền mỗi mặt hàng, m[i]: số lượng tối đa
+    // Đọc s, n
+    int s, n;
+    fin >> s >> n;
+
+    // Đọc c[i], m[i]
+    vector<int> c(n+1), m(n+1);
+    for(int i=1; i<=n; i++){
+        fin >> c[i] >> m[i];
     }
 
-    // Mảng dp để lưu số cách sử dụng hết x đồng
-    vector<int> dp(s + 1, 0);
-    dp[0] = 1; // Có 1 cách để sử dụng 0 đồng: không mua gì cả
+    // Tạo mảng dp và parent
+    // dp[i][v] là số cách (long long) để đạt tổng giá v dùng những mặt hàng 1..i
+    static long long dp[5010][501]; 
+    // parent[i][v] = -1 nếu dp[i][v]=0, còn lại ghi "số lượng mặt hàng i" ta chọn
+    static int parent[5010][501];
 
-    // Mảng để ghi nhận truy vết
-    vector<vector<int>> ways(n, vector<int>(s + 1, 0));
+    // i chạy đến n, v chạy đến s
+    // ta sẽ dùng dp cỡ (n+1) x (s+1) => n <= 500, s <= 500 thì vẫn ổn
 
-    // Duyệt qua từng mặt hàng
-    for (int i = 0; i < n; i++) {
-        // Duyệt qua số tiền từ s -> 0
-        for (int j = s; j >= 0; j--) {
-            for (int k = 1; k <= m[i] && j >= k * c[i]; k++) {
-                dp[j] = (dp[j] + dp[j - k * c[i]]) % MOD;
-                ways[i][j] = max(ways[i][j], ways[i][j - k * c[i]] + k);
+    // Khởi tạo dp[0][0] = 1
+    dp[0][0] = 1;
+    parent[0][0] = 0; // 0 nghĩa là "không dùng"
+
+    for(int v=1; v<=s; v++){
+        dp[0][v] = 0;
+        parent[0][v] = -1;
+    }
+
+    // Tính DP
+    for(int i=1; i<=n; i++){
+        for(int v=0; v<=s; v++){
+            // dp[i][v] = sum_{k=0..m[i], v-k*c[i] >=0} dp[i-1][v-k*c[i]]
+            long long ways = 0;
+            int chosenK = -1;
+            for(int k=0; k<=m[i]; k++){
+                int prevV = v - k*c[i];
+                if(prevV < 0) break; // không còn hợp lệ
+                if(dp[i-1][prevV] > 0){
+                    ways += dp[i-1][prevV];
+                    // nếu chưa chọn k để lưu vết, ta lấy k đầu tiên
+                    if(chosenK < 0){
+                        chosenK = k;
+                    }
+                }
+            }
+            dp[i][v] = ways;
+            if(ways>0){
+                parent[i][v] = chosenK; 
+            } else {
+                parent[i][v] = -1; 
             }
         }
     }
 
-    // Ghi số cách ra file
-    outputFile << dp[s] << endl;
+    // Số cách = dp[n][s]
+    long long totalWays = dp[n][s];
+    fout << totalWays << "\n";
 
-    // Tìm số lượng từng mặt hàng được mua trong cách bất kỳ
-    vector<int> result(n, 0);
-    int remaining = s;
-
-    for (int i = n - 1; i >= 0; i--) {
-        for (int k = 0; k <= m[i]; k++) {
-            if (remaining >= k * c[i] && dp[remaining - k * c[i]] > 0) {
-                result[i] = k;
-                remaining -= k * c[i];
-                break;
-            }
+    // Nếu totalWays > 0 thì ta cần truy vết ra 1 cách
+    if(totalWays > 0){
+        vector<int> buy(n+1, 0);
+        int v = s;
+        for(int i=n; i>=1; i--){
+            int used = parent[i][v];
+            buy[i] = used;
+            v -= used * c[i];
         }
+        // In ra từ 1..n
+        for(int i=1; i<=n; i++){
+            fout << buy[i];
+            if(i<n) fout << " ";
+        }
+        fout << "\n";
     }
-
-    // Ghi kết quả ra file (số lượng từng mặt hàng được mua)
-    for (int i = 0; i < n; i++) {
-        outputFile << result[i] << " ";
-    }
-    outputFile << endl;
-
-    // Đóng file
-    inputFile.close();
-    outputFile.close();
 
     return 0;
 }
